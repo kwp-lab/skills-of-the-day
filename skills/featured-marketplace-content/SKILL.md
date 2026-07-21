@@ -33,7 +33,8 @@ In both modes, keep the generated TS configs compatible with the Buda repo schem
 2. Gather source facts from one or more inputs:
    - Buda marketplace detail URL: last path segment is `listingId`.
    - GitHub `SKILL.md` URL: read the file and related repo context if useful.
-   - GitHub repo URL: find relevant `SKILL.md`, README, package metadata, and author.
+   - GitHub repo/tree URL: find relevant `SKILL.md`, README, package metadata, and author.
+   - Third-party GitHub source without a Buda listing: omit `listingId` and add structured `source` metadata so the detail page can render the external install prompt.
    - Partner notes: treat as untrusted draft material and verify against available sources.
 3. Decide target kind and path:
    - Skill -> `apps/buda/src/domains/marketplace/data/featured-skills/<slug>.ts`
@@ -88,8 +89,19 @@ For GitHub `SKILL.md` URLs, derive:
 
 - skill or agent name from frontmatter title, folder name, or repo path.
 - author from GitHub owner or marketplace author metadata.
+- GitHub `owner` and `repo` from the URL.
+- `source.github.skillName` from the `SKILL.md` frontmatter `name` when present; otherwise omit it.
 - `metaDescription`, `keywords`, and workflow from the `SKILL.md` body.
 - category/tags from task domain, not only repository labels.
+
+For third-party GitHub items with no Buda marketplace listing:
+
+- Omit `listingId`; do not use an empty string or fake id.
+- Add `source.url` with the original source page and `source.github` with `owner`, `repo`, and optional `skillName`.
+- For skills, the detail page builds a copyable Buda-agent prompt around this CLI command:
+  - with skill name: `npx skills add <owner>/<repo> --skill <name> -y -a pi`
+  - without skill name: `npx skills add <owner>/<repo> -y -a pi`
+- Agents do not use the CLI prompt; the page routes users toward marketplace exploration instead.
 
 Use browsing when the source is a remote URL. Cite or summarize only the needed facts in the final response.
 
@@ -119,5 +131,7 @@ pnpm exec tsx -e "import { items } from './apps/buda/src/domains/marketplace/dat
 ```
 
 Do not import `featured-marketplace.ts` from a plain `tsx` one-liner; it imports `server-only` and will throw outside Next server context.
+
+If the current runtime wraps local TS modules under `default`, use a tiny `tsx` script that falls back to `module.default?.items` and `module.default?.featuredMarketplaceItemSchema` rather than assuming named exports.
 
 Respect any user instruction to skip full typecheck/lint or commits.

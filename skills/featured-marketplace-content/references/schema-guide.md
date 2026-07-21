@@ -19,6 +19,11 @@ import { defineFeaturedMarketplaceItem } from "../featured-marketplace-define";
 - `category`: one primary category.
 - `tags`: 3-5 short scan labels.
 - `author`: creator attribution. Preserve community/open-source authors.
+- `source`: optional source metadata for third-party or external items. Use when the item comes from GitHub or another source page, especially when there is no Buda marketplace `listingId`.
+  - `source.url`: original source URL.
+  - `source.github.owner`: GitHub owner when the source is GitHub.
+  - `source.github.repo`: GitHub repo when the source is GitHub.
+  - `source.github.skillName`: skill name from `SKILL.md` frontmatter `name` when present. Omit when unavailable.
 - `publishedAt`: source listing publish date when known; otherwise current publish date.
 - `updatedAt`: source listing update date when known; otherwise current date.
 - `listingId`: optional marketplace listing id. Extract from Buda marketplace URL final path segment.
@@ -75,6 +80,32 @@ When the source is a GitHub `SKILL.md` URL:
 3. Read the folder/repo owner for attribution.
 4. Convert workflow instructions into `overviewMarkdown`, `steps`, and `useCasesMarkdown`.
 5. If no Buda marketplace listing exists, omit `listingId`.
-6. If the user asks for a draft only, set `status: "draft"` unless they explicitly want published.
+6. If no Buda marketplace listing exists, add `source.url` and GitHub metadata so the page can build the external install prompt.
+7. If the user asks for a draft only, set `status: "draft"` unless they explicitly want published.
+
+Example external GitHub skill metadata:
+
+```ts
+source: {
+  url: "https://github.com/alirezarezvani/claude-skills/tree/main/c-level-advisor/skills/founder-coach",
+  github: {
+    owner: "alirezarezvani",
+    repo: "claude-skills",
+    skillName: "founder-coach",
+  },
+},
+```
+
+For external GitHub skills, the detail page generates a copyable prompt that includes:
+
+```bash
+npx skills add <owner>/<repo> --skill <name> -y -a pi
+```
+
+If `skillName` is unavailable, omit the `--skill <name>` portion:
+
+```bash
+npx skills add <owner>/<repo> -y -a pi
+```
 
 For partner packages, default to `status: "draft"` even when a listing exists. Buda maintainers decide when to publish.
