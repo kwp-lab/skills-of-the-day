@@ -20,6 +20,12 @@ the provider contract changes.
 query strings, and other paths are rejected. Upload hosts, result URLs, and
 the result download must be HTTPS on `aliyuncs.com`.
 
+Known roots: China (Beijing) `dashscope.aliyuncs.com`, Singapore
+`dashscope-intl.aliyuncs.com`, US (Virginia) `dashscope-us.aliyuncs.com`, and
+workspace-specific `{WorkspaceId}.<region>.maas.aliyuncs.com`. API keys are
+region-scoped, and the pinned model is only served from Beijing and Singapore
+among the shared endpoints.
+
 ## Upload policy
 
 The policy response uses the `data` object:

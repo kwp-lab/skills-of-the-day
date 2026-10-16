@@ -54,6 +54,37 @@ python scripts/transcribe.py transcribe
 | `--timeout-minutes <n>` | The agent cannot wait this long (default 240) |
 | `--force` | The user explicitly wants a file redone; this bills again |
 
+## Regions and endpoints
+
+The API root is configurable, so the upload and the asynchronous task can run
+in the region closest to the machine holding the recordings. Set it with
+`setup --api-root` or the `api_root` field in the config file; the service
+decides the temporary upload target from that region.
+
+| Region | API root | File transcription |
+|---|---|---|
+| China (Beijing) | `https://dashscope.aliyuncs.com/api/v1` | Yes |
+| Singapore | `https://dashscope-intl.aliyuncs.com/api/v1` | Yes, same models |
+| US (Virginia) | `https://dashscope-us.aliyuncs.com/api/v1` | No: non-realtime ASR there only serves `qwen3-asr-flash` (short audio), not this file-transcription model |
+| Workspace-specific | `https://{WorkspaceId}.<region>.maas.aliyuncs.com/api/v1` | Follows the workspace's service deployment scope |
+
+```bash
+python scripts/transcribe.py setup --workdir "<dir>" --api-key "<region key>" --api-root "https://dashscope-intl.aliyuncs.com/api/v1"
+python scripts/transcribe.py check
+```
+
+- Alibaba Cloud API keys are region-scoped: a key from the China site
+  (`bailian.console.aliyun.com`) is rejected by the international endpoints.
+  Create the key in the console for the region being used
+  (`modelstudio.console.alibabacloud.com` for Singapore and other
+  international regions).
+- The model is pinned to `qwen-audio-3.0-asr-flash-filetrans`; pick a region
+  that serves it. Only the API root is user-configurable, and untrusted hosts,
+  plain HTTP, custom ports, credentials, or query strings are rejected before
+  any request is sent.
+- Switching regions never changes an existing transcript; it only affects new
+  uploads and new tasks.
+
 ## Interruptions and long recordings
 
 Whole-file transcription is asynchronous: a one-hour recording can take
