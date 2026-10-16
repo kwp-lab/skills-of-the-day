@@ -463,6 +463,11 @@ class EndToEndTests(TranscribeTestCase):
         self.assertEqual(self.server.state["uploads"], 2)
 
 
+class _NonInteractiveStdin(io.StringIO):
+    def isatty(self):
+        return False
+
+
 class CliTests(TranscribeTestCase):
     def setUp(self):
         super().setUp()
@@ -474,7 +479,10 @@ class CliTests(TranscribeTestCase):
         stdout = io.StringIO()
         stderr = io.StringIO()
         with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
-            code = t.main(argv)
+            # Never block on the interactive API-key prompt, regardless of how
+            # the test host attached stdin.
+            with mock.patch.object(sys, "stdin", _NonInteractiveStdin()):
+                code = t.main(argv)
         return code, stdout.getvalue(), stderr.getvalue()
 
     def test_setup_saves_configuration_and_check_reports_it(self):
