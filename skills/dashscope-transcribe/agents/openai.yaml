@@ -1,0 +1,4 @@
+interface:
+  display_name: "DashScope Transcribe"
+  short_description: "Turn recordings into text with Alibaba Cloud DashScope"
+  default_prompt: "Transcribe the recording files in my working directory into text."
